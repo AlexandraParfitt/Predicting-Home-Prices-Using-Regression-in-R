@@ -4,3 +4,5 @@ Using the coordinates of the house in the dataset and the website https://www.la
 A search for properties sold for between $635,000 and $645,000 in the year of 2014 in the King County Official Search Records returned no results. Upon further research, the no records seem to appear for any price range in 2014 - weird.
 
 Nick-it's 8033 Corliss Avenue. I used this website: https://www.kingcounty.gov/services/gis/PropResearch.aspx and the ID as the parcel number.
+
+The ID is the parcel number? Sweet! Is it a typo? 3 bathrooms? If so, can we just edit the data to correct it?
