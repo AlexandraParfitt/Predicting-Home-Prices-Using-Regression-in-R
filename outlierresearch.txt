@@ -5,4 +5,4 @@ A search for properties sold for between $635,000 and $645,000 in the year of 20
 
 Nick-it's 8033 Corliss Avenue. I used this website: https://www.kingcounty.gov/services/gis/PropResearch.aspx and the ID as the parcel number.
 
-The ID is the parcel number? Sweet! Is it a typo? 3 bathrooms? If so, can we just edit the data to correct it?
+The ID is the parcel number? Sweet! Is it a typo? 3 bedrooms? If so, can we just edit the data to correct it?
