@@ -1,0 +1,51 @@
+library(readr)
+library(ggplot2)
+library(MASS)
+library(leaps)
+#read data and make initial changes
+
+houses <- read_excel("houses_no_33.xlsx")
+houses$yr_renovated[houses$yr_renovated==0] <- NA #changed all zeros to "N/A" in the yr_renovated column
+
+names(houses)
+
+houses.subset2<-houses[,c(2:12,15,16,18:21)] #removed sqft_basement and sqft_living also removed zipcode because it's explained by long and lat and is categorical w/ 70 factors
+
+houses.subset2$price<-log(houses.subset2$price) #log transform on price
+houses.subset2$sqft_living<-log(houses.subset2$sqft_living) #log transform on sqftliving...she willll like that
+colnames(houses.subset2)[colnames(houses.subset2)=="ln(price)"] <- "ln_price" #changing the column name
+colnames(houses.subset2)[colnames(houses.subset2)=="ln(sqft_living)"] <- "ln_sqft_living" #changing the column name
+names(houses.subset2)
+head(houses.subset2)
+
+subsets <- regsubsets(ln_price ~ bedrooms + bathrooms + ln_sqft_living + sqft_lot + floors + waterfront + view + condition + grade + yr_built + yr_renovated + lat + long + sqft_living15 + sqft_lot15, data=houses.subset2)
+plot(subsets, scale = "Cp")
+attach(houses.subset2)
+reg_alex <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15)
+summary(reg_alex)
+
+##Plotting residuals. I have to create a new dataset with only complete data because otherwise I can't plot the residuals.
+library(tidyr)
+houses_no_na <-drop_na(houses.subset2)
+str(houses_no_na)
+reg_alex.res = resid(reg_alex)
+cbind(houses_no_na, reg_alex.res)
+library(ggplot2)
+ggplot(data=houses_no_na, aes(x=ln_sqft_living, y=reg_alex.res))
+
+plot(houses_no_na$ln_sqft_living, reg_alex.res, ylab="Residuals", xlab="Ln_Sq_Ft_Living", main="Residuals vs. Ln_Sq_Ft_Living")
+
+plot(houses_no_na$waterfront, reg_alex.res, ylab="Residuals", xlab="Waterfront", main="Residuals vs. Waterfront")
+
+plot(houses_no_na$grade, reg_alex.res, ylab="Residuals", xlab = "Grade", main="Residuals vs. Grade")
+
+plot(houses_no_na$yr_built, reg_alex.res, ylab="Residuals", xlab = "Year Built", main="Residuals vs. Year Built")
+
+plot(houses_no_na$yr_built, reg_alex.res, ylab="Residuals", xlab = "Year Built", main="Residuals vs. Year Built")
+
+plot(houses_no_na$yr_renovated, reg_alex.res, ylab="Residuals", xlab = "Year Renovated", main="Residuals vs. Year Renovated")
+
+plot(houses_no_na$lat, reg_alex.res, ylab="Residuals", xlab = "Latitude", main="Residuals vs. Latitude")
+
+plot(houses_no_na$sqft_living15, reg_alex.res, ylab="Residuals", xlab = "Sq_Ft_Living_15", main="Residuals vs. Sq_Ft_Living_15")
+
