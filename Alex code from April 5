@@ -49,3 +49,81 @@ plot(houses_no_na$lat, reg_alex.res, ylab="Residuals", xlab = "Latitude", main="
 
 plot(houses_no_na$sqft_living15, reg_alex.res, ylab="Residuals", xlab = "Sq_Ft_Living_15", main="Residuals vs. Sq_Ft_Living_15")
 
+#Checking interaction terms
+attach(houses.subset2)
+View(houses.subset2)
+reg_alex <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15)
+summary(reg_alex)
+
+#testing for interaction terms with waterfront
+reg_water <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15 + ln_sqft_living*waterfront + yr_built*waterfront + yr_renovated*waterfront + lat*waterfront + long*waterfront + sqft_living15*waterfront)
+
+reg_water2 <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15 + ln_sqft_living*waterfront + yr_renovated*waterfront + lat*waterfront + long*waterfront + sqft_living15*waterfront)
+summary(reg_water2)
+
+reg_water3 <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15 + ln_sqft_living*waterfront + lat*waterfront + long*waterfront + sqft_living15*waterfront)
+summary(reg_water3)
+
+reg_water4 <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15 + lat*waterfront + long*waterfront + sqft_living15*waterfront)
+summary(reg_water4)
+
+reg_water5 <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15 + lat*waterfront + sqft_living15*waterfront)
+summary(reg_water5)
+
+reg_water6 <-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long + sqft_living15 + lat*waterfront)
+summary(reg_water6)
+
+###Therefore we can determine that there is an interaction term and that reg_water6 is the most accurate model###
+
+###Checking for interactions with grade...did not find any...
+reg_water_grade<-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long+ sqft_living15 + lat*waterfront + ln_sqft_living*grade + yr_built*grade + yr_renovated*grade + lat*grade + long*grade + sqft_living15*grade)
+summary(reg_water_grade)
+
+reg_water_grade2<-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long+ sqft_living15 + lat*waterfront + ln_sqft_living*grade + yr_built*grade + yr_renovated*grade + long*grade + sqft_living15*grade)
+summary(reg_water_grade2)
+
+reg_water_grade3<-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long+ sqft_living15 + lat*waterfront + ln_sqft_living*grade + yr_built*grade + yr_renovated*grade + long*grade)
+summary(reg_water_grade3)
+
+reg_water_grade4<-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long+ sqft_living15 + lat*waterfront + yr_built*grade + yr_renovated*grade + long*grade)
+summary(reg_water_grade4)
+
+reg_water_grade5<-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long+ sqft_living15 + lat*waterfront + yr_renovated*grade + long*grade)
+summary(reg_water_grade5)
+
+reg_water_grade6<-lm(ln_price ~ ln_sqft_living + waterfront + grade + yr_built + yr_renovated + lat + long+ sqft_living15 + lat*waterfront + long*grade)
+summary(reg_water_grade6)
+
+###Checking for influence statistics. 9 predictors, 21,597 observations 
+#Calculating the boundary for leverages
+9/21597
+n(houses.subset2)
+leverages <- hatvalues(reg_water6)
+sum(leverages > 0.0004167245)
+#We have 914 observations that have high leverage.
+914/21597
+#That represents over 4.23% of our observations
+
+##Checking for leverages with Cook's D.
+cooks_houses <-cooks.distance(reg_water6)
+cooks_houses >1
+sum(cooks_houses>1)
+
+##Using DfFits
+dffits_houses <- dffits(reg_water6)
+dffits_houses_limit <-2*sqrt(9/21597)
+dffits_houses_limit
+dffits_influence_a <- sum(dffits_houses > dffits_houses_limit)
+dffits_influence_b <-sum(dffits_houses < -dffits_houses_limit)
+total_dffits <-dffits_influence_a + dffits_influence_b
+571/21597
+
+#Using DfBetas
+betas <-dfbetas(reg_water6)
+betas_limit <-2/sqrt(21597)
+betas_limit
+betas_influence_a <-sum(betas > betas_limit)
+betas_influence_b <-sum(betas < -betas_limit)
+total_betas <- betas_influence_a + betas_influence_b
+total_betas
+
