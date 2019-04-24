@@ -1,0 +1,231 @@
+---
+title: "RegProject1"
+author: "Fang Liu"
+date: "April 20, 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Including Plots
+
+You can also embed plots, for example:
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+panel.cor.scale <- function(x, y, digits=2, prefix="", cex.cor)
+ {
+ usr <- par("usr"); on.exit(par(usr))
+ par(usr = c(0, 1, 0, 1))
+ r = (cor(x, y,use="pairwise"))
+ txt <- format(c(r, 0.123456789), digits=digits)[1]
+ txt <- paste(prefix, txt, sep="")
+ if(missing(cex.cor)) cex <- 0.8/strwidth(txt)
+ text(0.5, 0.5, txt, cex = cex * abs(r))
+ }
+ 
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
+ {
+ usr <- par("usr"); on.exit(par(usr))
+ par(usr = c(0, 1, 0, 1))
+ r = (cor(x, y,use="pairwise"))
+ txt <- format(c(r, 0.123456789), digits=digits)[1]
+ txt <- paste(prefix, txt, sep="")
+ if(missing(cex.cor)) cex <- 0.8/strwidth(txt)
+ text(0.5, 0.5, txt, cex = cex )
+ }
+ 
+panel.hist <- function(x,labels,...)
+ {
+ usr <- par("usr"); on.exit(par(usr))
+ par(usr = c(usr[1:2], 0, 1.5) )
+ h <- hist(x, plot = FALSE)
+ breaks <- h$breaks; nB <- length(breaks)
+ y <- h$counts; y <- y/max(y)
+ rect(breaks[-nB], 0, breaks[-1], y, col="cyan", ...)
+ }
+
+pairs.panels <- function (x,y,labels,smooth=FALSE,scale=FALSE)
+ {if (smooth ){
+ if (scale) {
+ pairs(x,labels,cex.labels=1.5,diag.panel=panel.hist,
+   upper.panel=panel.cor.scale,lower.panel=panel.smooth)
+ }
+ else {pairs(x,labels,cex.labels=1.5,diag.panel=panel.hist,
+         upper.panel=panel.cor,lower.panel=panel.smooth)
+ }
+ }
+ else #smooth is not true
+ { if (scale) {pairs(x,labels,cex.labels=1.5,diag.panel=panel.hist,
+                 upper.panel=panel.cor.scale)
+ } else {pairs(x,labels,diag.panel=panel.hist,upper.panel=panel.cor) }
+ } #end of else (smooth)
+ } #end of function
+
+library(readxl)
+houses <- read_excel("houses.xls")
+lab <- c("price","bedroom",
+"bathroom",
+"livingsq","lotsq", "floors","waterfront","view","condition","grade","abovesq","basementsq","builtyr","renovyr","zipcode","lat","long","living15","lot15")
+pairs.panels(houses[3:21], labels=lab)
+
+```
+
+
+```{r}
+houses1<-select(houses,-sqft_lot,-floors,-waterfront,-condition,-yr_built,-yr_renovated,-sqft_lot15)
+lab <- c("price","bedroom",
+"bathroom",
+"livingsq","view","grade","abovesq","basementsq","zipcode","lat","long","living15")
+pairs.panels(houses[3:14], labels=lab)
+```
+
+
+```{r}
+lab <- c("bedroom", "bathroom", "livingsq","lotsq", "floors","waterfront","view","condition","grade","abovesq","basementsq","builtyr","renovyr","zipcode","lat","long","living15","lot15")
+myplot<-NA
+for(i in 4:21){
+myplot <- ggplot(mapping=aes(x=houses[[i]],y=houses[[3]])) + geom_point()+xlab(lab[[i-3]])+ylab("price")
+print(myplot)  
+}
+
+```
+Price-bedrooms has normal distribution. The highest price comes in 5-6 bedrooms, and goes down towards more and less bedrooms. There's one price comes from 30s bedroom. We guess it could be hotel. But it's high leverage but not high influencial. For houses price higher than $4 mm, the bedrooms are always 4/5/6 bedrooms. We can use transformation sqrbedrooms=-(bedrooms-6)^(1/2).
+
+Price-bathrooms has fan shape. We could use natural log to transform the variable.
+
+Price-livingsq has fan shape. We could use natural log to transform the variable.
+
+Lotsq has quite low corelation with price.
+
+Highest price comes from 2 floors. for other floors, influence in price not obviously, except a highest price comes from 2.5 floors. 
+
+waterfront and view not show strong corelation.
+
+grade has fan shape. Could use natural log to make transformation.
+
+abovesq has fan shape. Could use natural log to make transformation.
+
+living15 has fan shape. Could use natural log to make transformation.
+```{r}
+library(dplyr)
+library(ggplot2)
+houses5<-mutate(houses,lgprice=log(price),lgsqrbedrooms=log(bedrooms^(1/2)))
+ggplot(data=houses5) + geom_point(aes(x=lgsqrbedrooms,y=lgprice))+ggtitle("Scatterplot of lgprice vs. lgsqrbedrooms")+ylab("price")+xlab("bedrooms")+scale_color_distiller()
+```
+```{r}
+houses6<-mutate(houses5,lgbathrooms=log(bathrooms))
+ggplot(data=houses6) + geom_point(aes(x=lgbathrooms,y=lgprice))+ggtitle("Scatterplot of lgprice vs. lgbathrooms")+ylab("price")+xlab("lgbathrooms")+scale_color_distiller()
+```
+
+```{r}
+houses7<-mutate(houses6,lglivingsq=log(sqft_living))
+ggplot(data=houses7) + geom_point(aes(x=lglivingsq,y=lgprice))+ggtitle("Scatterplot of lgprice vs. lgliving")+ylab("price")+xlab("lgliving")+scale_color_distiller()
+```
+
+
+
+
+
+```{r}
+houses8<-mutate(houses7,lgsqrfloors=log(floors^(1/2)))
+ggplot(data=houses8) + geom_point(aes(x=lgsqrfloors,y=lgprice))+ggtitle("Scatterplot of lgprice vs. sqrfloorss")+ylab("price")+xlab("floors")+scale_color_distiller()
+```
+
+```{r}
+houses9<-mutate(houses8,lgsqrcondition=log(condition^(1/2)))
+ggplot(data=houses9) + geom_point(aes(x=lgsqrcondition,y=lgprice))+ggtitle("Scatterplot of lgprice vs. lgsqrcondition")+ylab("price")+xlab("condition")+scale_color_distiller()
+```
+
+```{r}
+houses10<-mutate(houses9,lggrade=log(grade))
+ggplot(data=houses10) + geom_point(aes(x=lggrade,y=lgprice))+ggtitle("Scatterplot of lgprice vs. lggrade")+ylab("price")+xlab("lggrade")+scale_color_distiller()
+```
+```{r}
+houses11<-mutate(houses10,lgsqabove=log(sqft_above))
+ggplot(data=houses11) + geom_point(aes(x=lgsqabove,y=lgprice))+ggtitle("Scatterplot of lgprice vs. lgsqabove")+ylab("price")+xlab("lgabove")+scale_color_distiller()
+```
+
+```{r}
+houses12<-mutate(houses11,lglat=log(lat),lglong=log(-long),lgsqliving15=log(sqft_living15), basement=sqft_basement)
+ggplot(data=houses12) + geom_point(aes(x=lglat,y=lgprice))+ggtitle("Scatterplot of price vs. lgsqabove")+ylab("price")+xlab("lgabove")+scale_color_distiller()
+ggplot(data=houses12) + geom_point(aes(x=sqft_basement,y=lgprice))+ggtitle("Scatterplot of price vs. lgbasement")+ylab("price")+xlab("lgbasement")+scale_color_distiller()
+```
+
+```{r}
+houses13<-mutate(houses12,lghouselife=log(2017-yr_built),lgrenovlife=ifelse(yr_renovated==0,lghouselife,log(2017-yr_renovated)))
+ggplot(data=houses13) + geom_point(aes(x=lghouselife,y=lgprice))+ggtitle("Scatterplot of price vs. lghouselife")+ylab("lgprice")+xlab("lghouselife")+scale_color_distiller()
+ggplot(data=houses13) + geom_point(aes(x=lgrenovlife,y=lgprice))+ggtitle("Scatterplot of price vs. lgrenovlife")+ylab("lgprice")+xlab("lgrenovlife")+scale_color_distiller()
+
+```
+
+
+```{r}
+lab3 <- c("lgprice","lgsqrbedrooms",
+"lgbathrooms",
+"lglivingsq", "lgsqrfloors","lgsqrcondition","lggrade","lgsqabove","lglat","lglong","lgliving15","basement","lghouselife","lgrenovlife")
+pairs.panels(houses13[22:35], labels=lab3)
+```
+lgsqrcondition and lglong show quite low corelation, bedrooms and floors are also not very high, so We drop off them.
+
+```{r}
+library(leaps)
+subsets <- regsubsets(lgprice~lgbathrooms+lglivingsq+lggrade+lgsqabove+lglat+lgsqliving15, data=houses12,nbest=5)
+plot(subsets)
+plot(subsets, scale="Cp")
+plot(subsets, scale="adjr2")
+plot(subsets, scale="r2")
+```
+
+```{r}
+library(MPV)
+n=21597
+houses13 <- data.frame(houses12[,22:32],-houses12[,23],-houses12[,26:27],-houses12[,31])
+X1 <- houses13[,c(2:7)] 
+leaps(X1,houses13$lgprice)
+reg1 <- lm(lgprice~lgbathrooms+lglivingsq+lggrade+lgsqabove+lglat+lgsqliving15, data=houses13)
+summary(reg1)
+PRESS(reg1)
+step(reg1,k=2)
+null <-lm(lgprice~1, data=houses13)
+full <- lm(lgprice~., data=houses13)
+bwd <-step(full, direction="backward")
+bwd
+```
+```{r}
+reg2 <- lm(lgprice~lgsqrbedrooms+lgsqrfloors+lgbathrooms+lglivingsq+lggrade+lgsqabove+lglat+lgsqliving15, data=houses13)
+summary(reg2)
+PRESS(reg2)
+```
+
+reg3 <- lm(lgprice~lgsqrbedrooms+lgsqrfloors+lgbathrooms+lglivingsq+lggrade+lgsqabove+lglat+lgsqliving15, data=houses13)
+summary(reg3)
+PRESS(reg3)
+
+```{r}
+
+library(psych)
+describe.by(houses$price)
+quantile(houses$price)
+ggplot(data=houses) + geom_point(aes(x=date,y=price, color=zipcode))+ggtitle("Scatterplot of price vs. date")+ylab("price")+xlab("date")
+```
+```{r}
+
+houses2<-filter(houses, price >= 645000)
+houses3<-filter(houses, price >= 322000,price<645000)
+houses4<-filter(houses, price < 322000)
+pairs.panels(houses2[3:16], labels=lab)
+pairs.panels(houses3[3:16], labels=lab)
+pairs.panels(houses4[3:16], labels=lab)
+```
+houses5<-mutate(houses,lgliving=log(sqft_living),lgprice=log(price))
