@@ -1,0 +1,10 @@
+library(MASS)
+fit.hub<-rlm(ln_price ~ ln_sqft_living + bathrooms + waterfront + view + grade + yr_built + lat + sqft_living15 +lat*waterfront, maxit=50)
+summary(fit.hub)
+
+fit.bisq<-rlm(ln_price ~ ln_sqft_living + bathrooms + waterfront + view + grade + yr_built + lat + sqft_living15 +lat*waterfront, maxit=50, psi=psi.bisquare)
+summary(fit.bisq)
+
+exp(-24.28+(0.5194*47.56)) #Increase Waterfront for Least Squares
+exp(-20.76+(0.4457*47.56)) #Increase Waterfront for Robust Hub.
+exp(-19.28+(0.4147*47.56)) #Increase Waterfront for Robust Bisq.
